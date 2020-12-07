@@ -1,0 +1,46 @@
+# HashiCorp Sentinel Policy for Vault
+# Details: Verify Tokens have appropriate policies for Access
+
+import "strings"
+import "types"
+
+  # Print some information about the request
+  # Note: these messages will only be printed when the policy is violated
+  print("Namespace path:", namespace.path)
+  print("Request path:", request.path)
+  print("Request data:", request.data)
+  print("Request username:", request.username)
+  print("Token policies:", token.policies)
+  print("Token metadata:", token.metadata)
+  print("Identity policies:", identity.entity.policies)
+  print("Identity metadata:", identity.entity.metadata)
+  print("Identity groups by id:", identity.groups.by_id)
+  print("Identity groups by name:", identity.groups.by_name)
+
+
+
+# Function that validates dates
+validate_groups = func() {
+
+    #test - always return false
+    #return_value = false
+        project_name = strings.trim_prefix(request.path, "kv/")
+	batch_inputs = identity.groups.by_name
+	for batch_inputs as b {
+                print ()
+		print ("Project name from request path:", project_name)
+                print ("LDAP group name:", b)
+                print ("Evaluation of project name from path == ldap group name:", project_name == b)
+		print ()
+		if (project_name == b) {
+			return true
+		}
+	}
+  return return_value
+}
+
+# Sentinel Policy Main Rule
+project_access_validated = validate_groups()
+main = rule {
+  project_access_validated
+}
